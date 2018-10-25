@@ -13,10 +13,18 @@ const styles = theme => ({
 });
 
 class InputNote extends React.Component {
-  state = {
-    spacing: '16',
-    note: '',
-  };
+  
+  constructor(props) {
+    super(props);
+    this.state = {
+      spacing: '16',
+      note: '',
+    };
+
+    this.handleChange = this.handleChange.bind(this);
+    this.handleSubmit = this.handleSubmit.bind(this);
+  }
+  
 
   handleChange = key => (event) => {
     this.setState({
@@ -39,7 +47,7 @@ class InputNote extends React.Component {
         alert(error.error);
       } else {
         this.setState({
-          [note]: '',
+          note: '',
         });
       }
     });
