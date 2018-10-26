@@ -5,10 +5,12 @@ import { withStyles } from '@material-ui/core/styles';
 import { withTracker } from 'meteor/react-meteor-data';
 import Grid from '@material-ui/core/Grid';
 import Paper from '@material-ui/core/Paper';
-import classNames from 'classnames';
 import TextField from '@material-ui/core/TextField';
 import SaveIcon from '@material-ui/icons/Save';
-import Button from '@material-ui/core/Button';
+import IconButton from '@material-ui/core/IconButton';
+import DeleteIcon from '@material-ui/icons/Delete';
+import Clear from '@material-ui/icons/Clear';
+import className from 'classnames';
 
 import { Notes } from '/imports/api/notes/notes.js';
 
@@ -16,23 +18,31 @@ import Orange from '@material-ui/core/colors/orange'
 
 const styles = theme => ({
   paper: {
-    height: 200,
+    minHeight: 200,
     width: 400,
     background: Orange[300],
     padding: 15,
+    position: 'relative',
     color: '#434343',
   },
   textField: {
     marginLeft: theme.spacing.unit,
     marginRight: theme.spacing.unit,
-    marginTop: 0,
+    marginTop: 15,
     width: 350,
-    height: 110,
+    height: 140,
     display: 'none',
   },
+  textNote: {
+    display: 'block', 
+    whiteSpace: 'pre',
+  },
   button: {
-    margin: theme.spacing.unit,
-    display: 'none',
+    position: 'absolute',
+    margin: 8,
+    padding: 5,
+    right: 5,
+    marginTop: -12
   },
   leftIcon: {
     marginRight: theme.spacing.unit,
@@ -41,8 +51,25 @@ const styles = theme => ({
     marginLeft: theme.spacing.unit,
   },
   iconSmall: {
-    fontSize: 20,
+    fontSize: 14,
   },
+  listItems: {
+    display: 'none',
+    listStyle: 'none',
+    padding: 0,
+    margin: 0,
+    position: 'absolute',
+    right: 20,
+    bottom: 0,
+  },
+  items: {
+    float: 'right',
+    margin: 0,
+    padding: 5,
+  },
+  btnItems: {
+    padding: 5,
+  }
 });
 
 class Note extends React.Component {
@@ -57,37 +84,87 @@ class Note extends React.Component {
     };
 
     this.handleChange = this.handleChange.bind(this);
+    this.handleSave = this.handleSave.bind(this);
+    this.handleDelete = this.handleDelete.bind(this);
+    this.handleClick = this.handleClick.bind(this);
+    this.handleClear = this.handleClear.bind(this);
   }
   
   handleChange = key => (event) => {
-    console.log(event.target.name);
+    event.stopPropagation();
     this.setState({
       [key]: event.target.value,
     });
   };
 
-  handleSave(){
-    console.log(this.state.note);
+  handleSave = note_id => (event) => {
+    event.preventDefault();
+    
+    let id = note_id;
+    let note = this.state.note;
+
+    Meteor.call('note.update', {note_id: id, note_detail: note}, (error) => {
+      if (error) {
+        alert(error.message);
+      } else {
+        this.clearPaper();
+      }
+    });
+    
+  }
+
+  clearPaper(){
+    let curTarget = this.state.targetClick;
+    let spanTag = curTarget.childNodes[1];
+    let divTag = curTarget.childNodes[2];
+    let btnTag = curTarget.childNodes[3];
+
+    spanTag.style = 'display: block';
+    divTag.style = 'display: none';
+    btnTag.style = 'display: none';
+    
+    this.setState({
+      note: '',
+      isEdit: false,
+      targetClick: null,
+    });
+  }
+
+  handleClear(event){
+    event.stopPropagation();
+    this.clearPaper();
+  }
+
+  handleDelete = note_id => (event) => {
+    event.stopPropagation();
+    
+    Meteor.call('note.delete', note_id, (error) => {
+      if (error) {
+        alert(error.message);
+      }
+    });
   }
 
   handleClick(event) {
     event.stopPropagation();
     let curTarget = event.currentTarget;
-    let spanTag = curTarget.childNodes[0];
-    let divTag = curTarget.childNodes[1];
-    let btnTag = curTarget.childNodes[2];
+    
+    if(curTarget.childNodes === null) return;
+    
+    let spanTag = curTarget.childNodes[1];
+    let divTag = curTarget.childNodes[2];
+    let btnTag = curTarget.childNodes[3];
 
     if (this.state.isEdit && this.state.targetClick === curTarget) return;
     
-    let strNote = curTarget.textContent;
     this.setState({ note: '' });
     
     if( this.state.targetClick !== null){
       
       let oldTarget = this.state.targetClick;
-      let oldSpanTag = oldTarget.childNodes[0];
-      let oldDivTag = oldTarget.childNodes[1]; 
-      let oldBtnTag = oldTarget.childNodes[2];
+      let oldSpanTag = oldTarget.childNodes[1];
+      let oldDivTag = oldTarget.childNodes[2]; 
+      let oldBtnTag = oldTarget.childNodes[3];
 
       oldSpanTag.style = 'display: block';
       oldDivTag.style = 'display: none';
@@ -108,15 +185,27 @@ class Note extends React.Component {
   renderNote(clss){
     return this.props.notes.map((note) => (
         <Grid key={note._id} item>
-            <Paper onClick={this.handleClick.bind(this)} className={clss.paper} xs={12} sm={8}>
-              <span style={{display: 'block'}}>{note.note}</span>
+            <Paper onClick={this.handleClick} className={clss.paper} xs={12} sm={8}>
+              <IconButton onClick={this.handleDelete(note._id)} className={clss.button} aria-label="Delete notes">
+                <DeleteIcon />
+              </IconButton>
+              <p className={clss.textNote}>{note.note.toString()}</p>
               <TextField  id="outlined-multiline-flexible" multiline
                           rows="5" value={this.state.note} onChange={this.handleChange('note')}
                           className={clss.textField} margin="normal" variant="outlined"
                           />
-              <Button variant="contained" size="small" className={clss.button} onClick={this.handleSave.bind(this)}>
-                <SaveIcon className={classNames(clss.leftIcon, clss.iconSmall)} />
-              </Button>
+              <ul className={clss.listItems}>
+                <li className={clss.items}>
+                  <IconButton className={clss.btnItems} onClick={this.handleSave(note._id)}  aria-label="Update notes">
+                    <SaveIcon />
+                  </IconButton>
+                </li>
+                <li className={clss.items}>
+                  <IconButton className={clss.btnItems} onClick={this.handleClear} aria-label="Clear notes">
+                    <Clear />
+                  </IconButton>
+                </li>
+              </ul>
             </Paper>
         </Grid>
     ));
