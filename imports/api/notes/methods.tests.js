@@ -4,21 +4,21 @@
 
 import { Meteor } from 'meteor/meteor';
 import { assert } from 'chai';
-import { Links } from './links.js';
+import { Notes } from './notes.js';
 import './methods.js';
 
 if (Meteor.isServer) {
-  describe('links methods', function () {
+  describe('notes methods', function () {
     beforeEach(function () {
-      Links.remove({});
+      Notes.remove({});
     });
 
     it('can add a new link', function () {
-      const addLink = Meteor.server.method_handlers['links.insert'];
+      const addNote = Meteor.server.method_handlers['notes.insert'];
 
-      addLink.apply({}, ['meteor.com', 'https://www.meteor.com']);
+      addNote.apply({}, ['meteor.com']);
 
-      assert.equal(Links.find().count(), 1);
+      assert.equal(Notes.find().count(), 1);
     });
   });
 }
