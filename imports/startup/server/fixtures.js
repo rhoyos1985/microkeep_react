@@ -1,34 +1,30 @@
 // Fill the DB with example data on startup
 
 import { Meteor } from 'meteor/meteor';
-import { Links } from '../../api/links/links.js';
+import { Notes } from '../../api/notes/notes.js';
 
 Meteor.startup(() => {
   // if the Links collection is empty
-  if (Links.find().count() === 0) {
+  if (Notes.find().count() === 0) {
     const data = [
       {
-        title: 'Do the Tutorial',
-        url: 'https://www.meteor.com/try',
+        note: 'My first meet up as speaker',
         createdAt: new Date(),
       },
       {
-        title: 'Follow the Guide',
-        url: 'http://guide.meteor.com',
+        note: 'Meteor - React',
         createdAt: new Date(),
       },
       {
-        title: 'Read the Docs',
-        url: 'https://docs.meteor.com',
+        note: 'Material-UI',
         createdAt: new Date(),
       },
       {
-        title: 'Discussions',
-        url: 'https://forums.meteor.com',
+        note: 'This is good',
         createdAt: new Date(),
       },
     ];
 
-    data.forEach(link => Links.insert(link));
+    data.forEach(note => Notes.insert(note));
   }
 });

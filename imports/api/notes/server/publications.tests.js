@@ -3,23 +3,22 @@
 // https://guide.meteor.com/testing.html
 
 import { assert } from 'chai';
-import { Links } from '../links.js';
+import { Notes } from '../notes.js';
 import { PublicationCollector } from 'meteor/johanbrook:publication-collector';
 import './publications.js';
 
-describe('links publications', function () {
+describe('notes publications', function () {
   beforeEach(function () {
-    Links.remove({});
-    Links.insert({
-      title: 'meteor homepage',
-      url: 'https://www.meteor.com',
+    Notes.remove({});
+    Notes.insert({
+      description: 'meteor homepage',
     });
   });
 
-  describe('links.all', function () {
-    it('sends all links', function (done) {
+  describe('notes.all', function () {
+    it('sends all notes', function (done) {
       const collector = new PublicationCollector();
-      collector.collect('links.all', (collections) => {
+      collector.collect('notes.all', (collections) => {
         assert.equal(collections.links.length, 1);
         done();
       });
